@@ -69,9 +69,50 @@ app.use(express.json());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Nova rota para verificar a fingerprint no banco de dados
+app.get('/check-fingerprint', async (req, res) => {
+    let message = "Esse é seu primeiro acesso";
+    const thumbmarkFingerprint = req.query.thumbmarkFingerprint;
+
+    try {
+        if (thumbmarkFingerprint) {
+            const count = await Fingerprint.countDocuments({ thumbmarkFingerprint: thumbmarkFingerprint });
+            if (count > 0) {
+                message = `Tenho outros registros na minha base de dados para a fingerprint ${thumbmarkFingerprint}`;
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao buscar fingerprint no banco de dados:', error);
+    }
+
+    // Retornar a mensagem como JSON
+    res.json({ message });
+});
+
+
+
+
 // Rota principal para servir a página inicial
-app.get('/', (req, res) => {
-    res.render('index', { title: 'Fingerprint Data', message: 'Aqui estão seus dados de fingerprint:' });
+app.get('/', async (req, res) => {
+    let message = "Esse é seu primeiro acesso";
+    const thumbmarkFingerprint = req.query.thumbmarkFingerprint || ''; // Obtém a fingerprint, ou vazio se não houver	
+    //alert(thumbmarkFingerprint);
+    try {
+        // Buscar no MongoDB se já existe uma thumbmarkFingerprint
+        
+        if (thumbmarkFingerprint) {
+            const count = await Fingerprint.countDocuments({ thumbmarkFingerprint: thumbmarkFingerprint });
+            if (count > 0) {
+                // Se já existir um registro, altere a mensagem
+                message = `Tenho outros registros na minha base de dados para a fingerprint ${thumbmarkFingerprint}`;
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao buscar fingerprint no banco de dados:', error);
+    }
+
+    // Renderizar a página com a mensagem
+    res.render('index', { title: 'Fingerprint Data', message });
 });
 
 // Rota para salvar o fingerprint no MongoDB

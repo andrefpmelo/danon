@@ -98,6 +98,7 @@ async function getBatteryFingerprint() {
 async function collectFingerprints() {
     const tcpFingerprint = await getTCPFingerprint();
     const thumbmarkFingerprint = await getThumbmarkFingerprint();
+    console.log('Thumbmark Fingerprint:', thumbmarkFingerprint);
     const canvasFingerprint = getCanvasFingerprint();
     const audioFingerprint = getAudioFingerprint();
     const webGLFingerprint = getWebGLFingerprint();
@@ -144,7 +145,22 @@ async function collectFingerprints() {
         audioFingerprint: audioFingerprint,
         webGLFingerprint: webGLFingerprint,
         batteryFingerprint: JSON.stringify(batteryFingerprint)
+
+	
     };
+    // Esconder a mensagem até receber a resposta
+    const messageElement = document.getElementById('message');
+    messageElement.textContent = ''; // Mantém vazio até a resposta do servidor
+
+     // Enviar a fingerprint via fetch sem redirecionar
+    fetch(`/check-fingerprint?thumbmarkFingerprint=${fingerprintData.thumbmarkFingerprint}`)
+        .then(response => response.json())
+        .then(data => {
+            // Exibir a mensagem retornada pelo servidor
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = data.message;
+        })
+        .catch(error => console.error('Erro ao verificar fingerprint:', error));
 
         // Função para inserir dados na seção específica
         function insertIntoSection(sectionId, attribute, value) {
