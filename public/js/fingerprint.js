@@ -29,6 +29,43 @@ document.addEventListener('DOMContentLoaded', () => {
         return hash.toString();
     }
 
+   function getAudioFingerprint() {
+    	const audioContext = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 44100, 44100);
+    	const oscillator = audioContext.createOscillator();
+    	const analyser = audioContext.createAnalyser();
+    	oscillator.connect(analyser);
+    	oscillator.start(0);
+    	const array = new Float32Array(analyser.frequencyBinCount);
+    	analyser.getFloatFrequencyData(array);
+    	let hash = 0;
+    	for (let i = 0; i < array.length; i++) {
+        	hash = (hash << 5) - hash + array[i];
+        	hash = hash & hash;
+    	}
+    	return hash.toString();
+    }
+
+function getWebGLFingerprint() {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl) return 'Not supported';
+    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+    const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+    return `Vendor: ${vendor}, Renderer: ${renderer}`;
+}
+
+async function getBatteryFingerprint() {
+    if (navigator.getBattery) {
+        const battery = await navigator.getBattery();
+        return {
+            level: battery.level,
+            charging: battery.charging
+        };
+    }
+    return 'Battery API not supported';
+}
+
     // Função para obter TCP Fingerprint via Zardaxt API
     async function getTCPFingerprint() {
         try {
@@ -58,46 +95,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Função para coletar todos os fingerprints e enviar ao servidor
-    async function collectFingerprints() {
-        const tcpFingerprint = await getTCPFingerprint();
-        const thumbmarkFingerprint = await getThumbmarkFingerprint();
+async function collectFingerprints() {
+    const tcpFingerprint = await getTCPFingerprint();
+    const thumbmarkFingerprint = await getThumbmarkFingerprint();
+    const canvasFingerprint = getCanvasFingerprint();
+    const audioFingerprint = getAudioFingerprint();
+    const webGLFingerprint = getWebGLFingerprint();
+    const batteryFingerprint = await getBatteryFingerprint();
 
-        const fingerprintData = {
-            // Navegador e Sistema
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            platform: navigator.platform,
-            screenResolution: `${window.screen.width}x${window.screen.height}`,
-            colorDepth: `${window.screen.colorDepth}-bit`,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            cookiesEnabled: navigator.cookieEnabled,
-            cpuCores: navigator.hardwareConcurrency || null,
-            onlineStatus: navigator.onLine ? 'Online' : 'Offline',
-            localStorage: typeof localStorage !== 'undefined' ? 'Supported' : 'Not supported',
-            sessionStorage: typeof sessionStorage !== 'undefined' ? 'Supported' : 'Not supported',
-            windowSize: `${window.innerWidth}x${window.innerHeight}`,
-            touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
-            pluginsInstalled: navigator.plugins.length > 0 ? Array.from(navigator.plugins).map(plugin => plugin.name).join(', ') : 'No plugins',
+    const fingerprintData = {
+        // Navegador e Sistema
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        colorDepth: `${window.screen.colorDepth}-bit`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        cookiesEnabled: navigator.cookieEnabled,
+        cpuCores: navigator.hardwareConcurrency || null,
+        onlineStatus: navigator.onLine ? 'Online' : 'Offline',
+        localStorage: typeof localStorage !== 'undefined' ? 'Supported' : 'Not supported',
+        sessionStorage: typeof sessionStorage !== 'undefined' ? 'Supported' : 'Not supported',
+        windowSize: `${window.innerWidth}x${window.innerHeight}`,
+        touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
+        pluginsInstalled: navigator.plugins.length > 0 ? Array.from(navigator.plugins).map(plugin => plugin.name).join(', ') : 'No plugins',
 
-            // TCP Fingerprint
-            tcpFingerprint: tcpFingerprint.os,
-            tcpFingerprintMismatch: tcpFingerprint.os_mismatch,
-            clientIP: tcpFingerprint.client_ip,
+        // TCP Fingerprint
+        tcpFingerprint: tcpFingerprint.os,
+        tcpFingerprintMismatch: tcpFingerprint.os_mismatch,
+        clientIP: tcpFingerprint.client_ip,
 
-            // ThumbmarkJS Fingerprint
-            thumbmarkFingerprint: thumbmarkFingerprint,
+        // ThumbmarkJS Fingerprint
+        thumbmarkFingerprint: thumbmarkFingerprint,
 
-            // Dados adicionais do ClientJS
-            browser: client.getBrowser() || 'Unknown',
-            browserVersion: client.getBrowserVersion() || 'Unknown',
-            os: client.getOS() || 'Unknown',
-            device: client.getDevice() || 'Unknown',
-            cpu: client.getCPU() || 'Unknown',
-            deviceType: client.getDeviceType() || 'Desktop',
-            deviceVendor: client.getDeviceVendor() || 'Unknown Vendor',
-            isMobile: client.isMobile() || false,
-            fingerprint: client.getFingerprint() || 'Unknown'
-        };
+        // Dados adicionais do ClientJS
+        browser: client.getBrowser() || 'Unknown',
+        browserVersion: client.getBrowserVersion() || 'Unknown',
+        os: client.getOS() || 'Unknown',
+        device: client.getDevice() || 'Unknown',
+        cpu: client.getCPU() || 'Unknown',
+        deviceType: client.getDeviceType() || 'Desktop',
+        deviceVendor: client.getDeviceVendor() || 'Unknown Vendor',
+        isMobile: client.isMobile() || false,
+        fingerprint: client.getFingerprint() || 'Unknown',
+
+        // Fingerprints adicionais
+        canvasFingerprint: canvasFingerprint,
+        audioFingerprint: audioFingerprint,
+        webGLFingerprint: webGLFingerprint,
+        batteryFingerprint: JSON.stringify(batteryFingerprint)
+    };
 
         // Função para inserir dados na seção específica
         function insertIntoSection(sectionId, attribute, value) {
@@ -116,9 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Limpar as seções antes de preencher
         document.getElementById('systemData').innerHTML = '';
-        document.getElementById('tcpData').innerHTML = '';
-        document.getElementById('clientData').innerHTML = '';
-        document.getElementById('thumbmarkData').innerHTML = '';
+    	document.getElementById('tcpData').innerHTML = '';
+    	document.getElementById('clientData').innerHTML = '';
+     	document.getElementById('thumbmarkData').innerHTML = '';
+    	document.getElementById('additionalData').innerHTML = '';
 
         // Seção 1: Navegador e Sistema
         insertIntoSection('systemData', 'userAgent', fingerprintData.userAgent);
@@ -154,6 +202,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Seção 4: Thumbmark Fingerprints
         insertIntoSection('thumbmarkData', 'thumbmarkFingerprint', fingerprintData.thumbmarkFingerprint);
+
+	// Outros
+
+	 // Adicionar esses novos dados à tabela no frontend
+         insertIntoSection('additionalData', 'canvasFingerprint', fingerprintData.canvasFingerprint);
+         insertIntoSection('additionalData', 'audioFingerprint', fingerprintData.audioFingerprint);
+         insertIntoSection('additionalData', 'webGLFingerprint', fingerprintData.webGLFingerprint);
+         insertIntoSection('additionalData', 'batteryFingerprint', fingerprintData.batteryFingerprint);
+
+
 
         // Enviar os dados de fingerprint para o servidor
         fetch('/submit-fingerprint', {

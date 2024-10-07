@@ -48,6 +48,11 @@ const fingerprintSchema = new mongoose.Schema({
     isMobile: Boolean,
     fingerprint: String, // ID gerado pelo ClientJS
 
+    // Fingerprints adicionais
+    audioFingerprint: String,
+    webGLFingerprint: String,
+    batteryFingerprint: String,
+
     timestamp: { type: Date, default: Date.now }
 });
 

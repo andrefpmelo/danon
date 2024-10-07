@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fingerprint Data</title>
+    <title>D-ANON</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -46,7 +46,7 @@
         }
 
         th {
-            background-color: #4CAF50;
+            background-color: #333;
             color: white;
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -62,7 +62,7 @@
 
         /* Estilos de Seções */
         .section-title {
-            background-color: #007BFF; /* Cor para seções */
+            background-color: #007BFF;
             color: white;
             padding: 8px;
             font-size: 16px;
@@ -82,8 +82,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>Fingerprint Attribute</th>
-                    <th>Value</th>
+                    <th>Fingerprint</th>
+                    <th>Valor</th>
                 </tr>
             </thead>
             <tbody>
@@ -107,9 +107,15 @@
 
                 <!-- Seção Thumbmark Fingerprints -->
                 <tr>
-                    <td class="section-title" colspan="2">Thumbmark Fingerprints</td>
+                    <td class="section-title" colspan="2">ThumbmarkJS Fingerprints</td>
                 </tr>
                 <tbody id="thumbmarkData"></tbody>
+
+                <!-- Seção Fingerprints Adicionais -->
+                <tr>
+                    <td class="section-title" colspan="2">Fingerprints Adicionais</td>
+                </tr>
+                <tbody id="additionalData"></tbody>
             </tbody>
         </table>
     </div>
