@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "clientjs": "^0.2.1",
     "ejs": "^3.1.10",
     "express": "^4.21.0",
     "mongoose": "^8.7.0"

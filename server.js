@@ -28,12 +28,28 @@ const fingerprintSchema = new mongoose.Schema({
     touchSupport: String,
     pluginsInstalled: String,
     canvasFingerprint: String,
-    tcpFingerprint: String,  // Adiciona campo para TCP Fingerprint
-    tcpFingerprintMismatch: Boolean,  // Adiciona campo para verificar inconsistência
-    clientIP: String,  // Adiciona campo para o IP do cliente
+    
+    // Campos relacionados ao TCP Fingerprint
+    tcpFingerprint: String,
+    tcpFingerprintMismatch: Boolean,
+    clientIP: String,
+
+    // Fingerprint gerado pelo ThumbmarkJS
+    thumbmarkFingerprint: String,
+
+    // Dados adicionais coletados pelo ClientJS
+    browser: String,
+    browserVersion: String,
+    os: String,
+    device: String,
+    cpu: String,
+    deviceType: String,
+    deviceVendor: String,
+    isMobile: Boolean,
+    fingerprint: String, // ID gerado pelo ClientJS
+
     timestamp: { type: Date, default: Date.now }
 });
-
 
 // Criar o modelo Fingerprint
 const Fingerprint = mongoose.model('Fingerprint', fingerprintSchema);
@@ -67,7 +83,7 @@ app.post('/submit-fingerprint', async (req, res) => {
 
 // Iniciar o servidor na porta 3000
 const PORT = process.env.PORT || 3000;
-const HOST = '172.20.10.5';  // Definir o IP no qual o servidor vai escutar
+const HOST = '192.168.5.193';  // Definir o IP no qual o servidor vai escutar
 
 app.listen(PORT, HOST, () => {
     console.log(`Servidor rodando em http://${HOST}:${PORT}`);

@@ -6,42 +6,116 @@
     <title>Fingerprint Data</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+            align-items: flex-start;
+            min-height: 100vh;
         }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 900px;
+            margin: 40px 20px;
+            width: 100%;
+        }
+
         table {
+            width: 100%;
             border-collapse: collapse;
-            width: 60%;
-            margin: auto;
+            margin-top: 20px;
         }
+
         th, td {
-            padding: 12px;
+            padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
+
         th {
-            background-color: #f2f2f2;
+            background-color: #4CAF50;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Estilos de Seções */
+        .section-title {
+            background-color: #007BFF; /* Cor para seções */
+            color: white;
+            padding: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
     </style>
 </head>
 <body>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Fingerprint Attribute</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody id="fingerprintData">
-            <!-- Fingerprint data will be inserted here dynamically -->
-        </tbody>
-    </table>
+    <div class="container">
+        <h1>Fingerprint Data</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fingerprint Attribute</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Seção Navegador e Sistema -->
+                <tr>
+                    <td class="section-title" colspan="2">Navegador e Sistema</td>
+                </tr>
+                <tbody id="systemData"></tbody>
 
+                <!-- Seção TCP Fingerprints -->
+                <tr>
+                    <td class="section-title" colspan="2">TCP Fingerprints</td>
+                </tr>
+                <tbody id="tcpData"></tbody>
+
+                <!-- Seção ClientJS Fingerprints -->
+                <tr>
+                    <td class="section-title" colspan="2">ClientJS Fingerprints</td>
+                </tr>
+                <tbody id="clientData"></tbody>
+
+                <!-- Seção Thumbmark Fingerprints -->
+                <tr>
+                    <td class="section-title" colspan="2">Thumbmark Fingerprints</td>
+                </tr>
+                <tbody id="thumbmarkData"></tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/clientjs@0.1.11/dist/client.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs/dist/thumbmark.umd.js"></script>
     <script src="/js/fingerprint.js"></script>
 </body>
 </html>
