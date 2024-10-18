@@ -85,3 +85,9 @@ Arquivo responsável pela exibição dos dados no navegador. Ele exibe os finger
 
 ### fingerprint.js
 Arquivo JavaScript que coleta várias fingerprints do navegador do usuário, como canvas, WebGL, áudio, bateria, TCP, e ThumbmarkJS. Ele também envia esses dados ao servidor.
+
+## Prints
+![image](https://github.com/user-attachments/assets/32e6f3d5-c535-4df2-b18b-859ecb916358)
+![image](https://github.com/user-attachments/assets/9010d8d3-7e3a-4379-99fa-c47f963a99a6)
+![image](https://github.com/user-attachments/assets/a416bb3b-794a-44ca-a9bb-772885a938bf)
+
