@@ -10,24 +10,33 @@
 
 ## Estrutura do Projeto
 
-```bash
+```plaintext
 .
-├── package.json
-├── package-lock.json
 ├── public
 │   └── js
-│       └── fingerprint.js
+│       ├── audioFingerprint.js
+│       ├── batteryFingerprint.js
+│       ├── canvasFingerprint.js
+│       ├── mainFingerprint.js
+│       ├── tcpFingerprint.js
+│       ├── thumbmarkFingerprint.js
+│       ├── webGLFingerprint.js
 ├── server.js
 └── views
     ├── index.ejs
     └── response.ejs
 
-- package.json: Arquivo de dependências e metadados do projeto Node.js.
-- public/js/fingerprint.js: Script responsável pela coleta dos dados de fingerprint no frontend.
-- server.js: Script principal do servidor que lida com o armazenamento das fingerprints e consulta no MongoDB.
-- views/index.ejs: Página de exibição das fingerprints coletadas.
-- views/response.ejs: Página de resposta ou confirmação (pode ser personalizada conforme necessidade).
 ```
+## Arquivos de Fingerprinting
+Os módulos de coleta de fingerprint foram divididos para facilitar a manutenção do código e garantir a modularização. A seguir, uma descrição de cada módulo:
+
+- canvasFingerprint.js: Responsável por capturar a fingerprint usando o elemento canvas do HTML5.
+- audioFingerprint.js: Captura a fingerprint baseada em uma análise do sinal de áudio gerado.
+- webGLFingerprint.js: Gera a fingerprint baseada em dados WebGL do navegador.
+- batteryFingerprint.js: Coleta informações da bateria do dispositivo do usuário.
+- tcpFingerprint.js: Faz uma requisição à API Zardaxt para obter dados de fingerprint via TCP.
+- thumbmarkFingerprint.js: Coleta a fingerprint utilizando a biblioteca ThumbmarkJS.
+- mainFingerprint.js: Arquivo principal que integra todos os módulos acima e coordena o envio das fingerprints ao servidor.
 
 ## Requisitos
 Certifique-se de que você tem os seguintes softwares instalados em seu sistema:
@@ -87,8 +96,20 @@ Arquivo responsável pela exibição dos dados no navegador. Ele exibe os finger
 ### fingerprint.js
 Arquivo JavaScript que coleta várias fingerprints do navegador do usuário, como canvas, WebGL, áudio, bateria, TCP, e ThumbmarkJS. Ele também envia esses dados ao servidor.
 
+
+## Tecnologias Utilizadas
+- Node.js: Back-end do projeto.
+- MongoDB: Base de dados utilizada para armazenar as fingerprints.
+- Express.js: Framework web utilizado no servidor.
+- ThumbmarkJS: Biblioteca utilizada para captura de fingerprints.
+- ClientJS: Captura de dados adicionais do navegador.
+- EJS: Template engine para a renderização das páginas HTML.
+
 ## Prints
 ![image](https://github.com/user-attachments/assets/32e6f3d5-c535-4df2-b18b-859ecb916358)
 ![image](https://github.com/user-attachments/assets/9010d8d3-7e3a-4379-99fa-c47f963a99a6)
 ![image](https://github.com/user-attachments/assets/a416bb3b-794a-44ca-a9bb-772885a938bf)
 
+__________
+
+![image](https://github.com/user-attachments/assets/9270abf2-7c00-47d0-a31e-8c8326e7dc4c)
