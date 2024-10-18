@@ -32,9 +32,9 @@
 ## Requisitos
 Certifique-se de que você tem os seguintes softwares instalados em seu sistema:
 
-Node.js (v14 ou superior)
-MongoDB (em execução localmente ou via Docker)
-Git (para clonar o repositório)
+- Node.js (v14 ou superior)
+- MongoDB (em execução localmente ou via Docker)
+- Git (para clonar o repositório)
 
 ## Como Instalar
 Siga os passos abaixo para baixar e executar o projeto Danon em seu computador:
