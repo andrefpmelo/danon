@@ -40,25 +40,25 @@ Git (para clonar o repositório)
 Siga os passos abaixo para baixar e executar o projeto Danon em seu computador:
 
 1. Clonar o repositório
-Primeiro, clone o repositório em seu computador usando o comando:
+   Primeiro, clone o repositório em seu computador usando o comando:
 ```bash
 git clone https://github.com/seu-usuario/danon.git
 ```
 2. Instalar as dependências
-Entre no diretório do projeto e instale as dependências do Node.js:
+   Entre no diretório do projeto e instale as dependências do Node.js:
 ```bash
 cd danon
 npm install
 ```
 3. Configurar o MongoDB
-Se você não tem o MongoDB instalado, você pode rodar uma instância via Docker:
+   Se você não tem o MongoDB instalado, você pode rodar uma instância via Docker:
 ```bash
 docker run -d -p 27017:27017 --name mongodb mongo
 ```
 O banco de dados MongoDB precisa estar em execução na porta 27017.
 
 4. Executar o projeto
-Inicie o servidor Node.js com o seguinte comando:
+   Inicie o servidor Node.js com o seguinte comando:
 ```bash
 node server.js
 ```
@@ -67,4 +67,21 @@ O servidor será iniciado na porta 3000 e estará disponível no endereço:
 http://localhost:3000
 ```
 5. Testar o sistema
-Abra seu navegador e acesse a URL fornecida. A aplicação exibirá as fingerprints coletadas e verificará se existem registros prévios no banco de dados.
+   Abra seu navegador e acesse a URL fornecida. A aplicação exibirá as fingerprints coletadas e verificará se existem registros prévios no banco de dados.
+
+
+## Estrutura do Código
+
+### server.js
+Este arquivo contém toda a lógica do servidor. Ele:
+
+- Conecta ao MongoDB.
+- Recebe e salva os fingerprints enviados pelo cliente.
+- Verifica se uma thumbmarkFingerprint já existe no banco de dados.
+- Renderiza as páginas usando EJS.
+
+### index.ejs
+Arquivo responsável pela exibição dos dados no navegador. Ele exibe os fingerprints coletados em uma tabela, organizados por seções.
+
+### fingerprint.js
+Arquivo JavaScript que coleta várias fingerprints do navegador do usuário, como canvas, WebGL, áudio, bateria, TCP, e ThumbmarkJS. Ele também envia esses dados ao servidor.
