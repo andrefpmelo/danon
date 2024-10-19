@@ -11,6 +11,12 @@ mongoose.connect('mongodb://localhost:27017/fingerprintDB', {
 .then(() => console.log('Conectado ao MongoDB via Docker!'))
 .catch((err) => console.error('Erro ao conectar ao MongoDB:', err));
 
+// Definir o mecanismo de visualização EJS
+app.set('view engine', 'ejs');
+
+// Definir o caminho das views
+app.set('views', path.join(__dirname, 'views'));
+
 // Definir o esquema de fingerprint
 const fingerprintSchema = new mongoose.Schema({
     userAgent: String,
@@ -65,21 +71,25 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Middleware para analisar o JSON no corpo da requisição
 app.use(express.json());
 
-// Configurar o mecanismo de visualização EJS
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+// GET route to serve the HTML page and render the view
+app.get('/', (req, res) => {
+    res.render('index', { title: 'Fingerprint Data', message: '' });
+});
 
-// Nova rota para verificar a fingerprint no banco de dados
-app.get('/check-fingerprint', async (req, res) => {
+// Rota principal para capturar fingerprints e verificar registros prévios
+app.post('/submit-fingerprint', async (req, res) => {
     let message = "Esse é seu primeiro acesso";
-    const thumbmarkFingerprint = req.query.thumbmarkFingerprint;
+    const thumbmarkFingerprint = req.body.thumbmarkFingerprint;
 
     try {
-        if (thumbmarkFingerprint) {
-            const count = await Fingerprint.countDocuments({ thumbmarkFingerprint: thumbmarkFingerprint });
-            if (count > 0) {
-                message = `Tenho outros registros na minha base de dados para a fingerprint ${thumbmarkFingerprint}`;
-            }
+        // Primeiro, salvar as fingerprints no banco de dados
+        const newFingerprint = new Fingerprint(req.body);
+        await newFingerprint.save();
+
+        // Depois de salvar, verificar se há registros anteriores com a mesma fingerprint
+        const count = await Fingerprint.countDocuments({ thumbmarkFingerprint: thumbmarkFingerprint });
+        if (count > 1) {  // Se for maior que 1, significa que já há outros registros
+            message = `Tenho outros registros na minha base de dados para a fingerprint ${thumbmarkFingerprint}`;
         }
     } catch (error) {
         console.error('Erro ao buscar fingerprint no banco de dados:', error);
@@ -89,44 +99,6 @@ app.get('/check-fingerprint', async (req, res) => {
     res.json({ message });
 });
 
-
-
-
-// Rota principal para servir a página inicial
-app.get('/', async (req, res) => {
-    let message = "Esse é seu primeiro acesso";
-    const thumbmarkFingerprint = req.query.thumbmarkFingerprint || ''; // Obtém a fingerprint, ou vazio se não houver	
-    //alert(thumbmarkFingerprint);
-    try {
-        // Buscar no MongoDB se já existe uma thumbmarkFingerprint
-        
-        if (thumbmarkFingerprint) {
-            const count = await Fingerprint.countDocuments({ thumbmarkFingerprint: thumbmarkFingerprint });
-            if (count > 0) {
-                // Se já existir um registro, altere a mensagem
-                message = `Tenho outros registros na minha base de dados para a fingerprint ${thumbmarkFingerprint}`;
-            }
-        }
-    } catch (error) {
-        console.error('Erro ao buscar fingerprint no banco de dados:', error);
-    }
-
-    // Renderizar a página com a mensagem
-    res.render('index', { title: 'Fingerprint Data', message });
-});
-
-// Rota para salvar o fingerprint no MongoDB
-app.post('/submit-fingerprint', async (req, res) => {
-    try {
-        // Criar e salvar o fingerprint no MongoDB
-        const newFingerprint = new Fingerprint(req.body);
-        await newFingerprint.save();
-        res.status(201).json({ message: 'Fingerprint salvo com sucesso!' });
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao salvar fingerprint', error });
-    }
-});
-
 // Iniciar o servidor na porta 3000
 const PORT = process.env.PORT || 3000;
 const HOST = '192.168.5.193';  // Definir o IP no qual o servidor vai escutar
@@ -134,3 +106,4 @@ const HOST = '192.168.5.193';  // Definir o IP no qual o servidor vai escutar
 app.listen(PORT, HOST, () => {
     console.log(`Servidor rodando em http://${HOST}:${PORT}`);
 });
+
