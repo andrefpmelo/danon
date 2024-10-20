@@ -5,98 +5,14 @@ import { getBatteryFingerprint } from './batteryFingerprint.js';
 import { getTCPFingerprint } from './tcpFingerprint.js';
 import { getThumbmarkFingerprint } from './thumbmarkFingerprint.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize ClientJS
-    const client = new ClientJS();
-    // Capturar todas as fingerprints
-    async function collectFingerprints() {
-        const thumbmarkFingerprint = await getThumbmarkFingerprint();
-        const tcpFingerprint = await getTCPFingerprint();
-        const canvasFingerprint = getCanvasFingerprint();
-        const audioFingerprint = getAudioFingerprint();
-        const webGLFingerprint = getWebGLFingerprint();
-        const batteryFingerprint = await getBatteryFingerprint();
+let fingerprintData = {};
+let selectedIdentifier;
+let identifierValue;
+// Verificar se as fingerprints já foram enviadas nesta sessão
+let fingerprintsSent = sessionStorage.getItem('fingerprintsSent') === 'true';
 
-        const fingerprintData = {
-            // Navegador e Sistema
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            platform: navigator.platform,
-            screenResolution: `${window.screen.width}x${window.screen.height}`,
-            colorDepth: `${window.screen.colorDepth}-bit`,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            cookiesEnabled: navigator.cookieEnabled,
-            cpuCores: navigator.hardwareConcurrency || null,
-            onlineStatus: navigator.onLine ? 'Online' : 'Offline',
-            localStorage: typeof localStorage !== 'undefined' ? 'Supported' : 'Not supported',
-            sessionStorage: typeof sessionStorage !== 'undefined' ? 'Supported' : 'Not supported',
-            windowSize: `${window.innerWidth}x${window.innerHeight}`,
-            touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
-            pluginsInstalled: navigator.plugins.length > 0 ? Array.from(navigator.plugins).map(plugin => plugin.name).join(', ') : 'No plugins',
-
-            // TCP Fingerprint
-            tcpFingerprint: tcpFingerprint.os,
-            tcpFingerprintMismatch: tcpFingerprint.os_mismatch,
-            clientIP: tcpFingerprint.client_ip,
-
-            // ThumbmarkJS Fingerprint
-            thumbmarkFingerprint: thumbmarkFingerprint,
-
-            // Dados adicionais do ClientJS
-            browser: client.getBrowser() || 'Unknown',
-            browserVersion: client.getBrowserVersion() || 'Unknown',
-            os: client.getOS() || 'Unknown',
-            device: client.getDevice() || 'Unknown',
-            cpu: client.getCPU() || 'Unknown',
-            deviceType: client.getDeviceType() || 'Desktop',
-            deviceVendor: client.getDeviceVendor() || 'Unknown Vendor',
-            isMobile: client.isMobile() || false,
-            fingerprint: client.getFingerprint() || 'Unknown',
-        
-            // Fingerprints adicionais
-            canvasFingerprint: canvasFingerprint,
-            audioFingerprint: audioFingerprint,
-            webGLFingerprint: webGLFingerprint ? `Vendor: ${webGLFingerprint.vendor}, Renderer: ${webGLFingerprint.renderer}` : 'Not supported',
-            batteryFingerprint: JSON.stringify(batteryFingerprint)
-    };
-        
-        // Obter o identificador selecionado
-        const identifierSelect = document.getElementById('identifier');
-        const selectedIdentifier = identifierSelect.value;
-        identifierSelect.addEventListener('change', () => {
-            collectFingerprints();
-        });
-
-        // Adicionar ao objeto fingerprintData
-        fingerprintData.selectedIdentifier = selectedIdentifier;
-        
-        // Enviar as fingerprints para o backend
-        fetch('/submit-fingerprint', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(fingerprintData)
-        })
-        .then(response => response.json())
-        .then(data => {
-             // Debug
-            //console.log('Resposta do backend:', data);
-            // Exibir a mensagem retornada pelo servidor
-            const messageElement = document.getElementById('message');
-            messageElement.textContent = data.message;
-
-            // Exibir os dados na tabela
-            displayFingerprints(fingerprintData);
-            
-            // Exibir a mensagem e o botão
-            displayMessageAndButton(data.message, fingerprintData[selectedIdentifier], selectedIdentifier);
-        })
-        .catch(error => console.error('Erro ao enviar/verificar fingerprint:', error));
-    }
-
-    // Função para exibir os dados na tabela
-    function displayFingerprints(fingerprintData) {
+// Função para exibir os dados na tabela
+function displayFingerprints(fingerprintData) {
         function insertIntoSection(sectionId, attribute, value) {
             const section = document.getElementById(sectionId);
 
@@ -106,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const valueCell = document.createElement('td');
 
                 attributeCell.textContent = attribute;
-                valueCell.textContent = value;
+                valueCell.textContent = value !== undefined && value !== null ? value : 'N/A';
 
                 row.appendChild(attributeCell);
                 row.appendChild(valueCell);
@@ -166,9 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Após inserir os dados, configurar os botões de toggle
         setupToggleButtons();
-    }
+}
 
-    function setupToggleButtons() {
+function setupToggleButtons() {
         const sections = document.querySelectorAll('tbody.section');
 
         sections.forEach(section => {
@@ -188,29 +104,202 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+}
+
+// Exibir a mensagem e o botão
+function displayMessageAndButton(message, identifierValue, selectedIdentifier) {
+    const messageElement = document.getElementById('message');
+    messageElement.textContent = message;
+
+    // Remover botão anterior se existir
+    const existingButton = messageElement.querySelector('button');
+    if (existingButton) {
+        messageElement.removeChild(existingButton);
     }
 
+    // Verifica se a mensagem indica que há registros anteriores
+    if (message.includes('Tenho outros registros')) {
+        // Criar o botão dinamicamente
+        const button = document.createElement('button');
+        button.textContent = 'Ver últimas 5 fingerprints';
+        button.onclick = () => {
+           window.location.href = `/view-records?identifierValue=${identifierValue}&selectedIdentifier=${selectedIdentifier}`;
+        };
+        messageElement.appendChild(button);
+    }
+}
 
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize ClientJS
+    const client = new ClientJS();
     
-    // Exibir a mensagem e o botão
-    function displayMessageAndButton(message, identifierValue, selectedIdentifier) {
-        const messageElement = document.getElementById('message');
-        messageElement.textContent = message;
+    // Obter o elemento de seleção do identificador
+    const identifierSelect = document.getElementById('identifier');
+    // Recuperar o identificador selecionado do sessionStorage, se existir
+    selectedIdentifier = sessionStorage.getItem('selectedIdentifier') || identifierSelect.value;
+    // Atualizar o seletor com o identificador armazenado
+    identifierSelect.value = selectedIdentifier;
+    
+    // Capturar todas as fingerprints
+    async function collectFingerprints() {
+        console.log('collectFingerprints chamado. fingerprintsSent:', fingerprintsSent);
+        if (fingerprintsSent) {
+            // As fingerprints já foram enviadas nesta sessão; não enviar novamente
+            // Mas precisamos obter os dados para usar ao mudar o identificador
+            // Recuperar os dados do sessionStorage
+            fingerprintData = JSON.parse(sessionStorage.getItem('fingerprintData')) || {};
+            
+            // Obter o identificador selecionado e o valor correspondente
+            selectedIdentifier = sessionStorage.getItem('selectedIdentifier') || identifierSelect.value;
+            identifierSelect.value = selectedIdentifier;
+            identifierValue = fingerprintData[selectedIdentifier];
+            
+            if (identifierValue === undefined) {
+                alert('O identificador selecionado não está disponível nos dados coletados.');
+                return;
+            }
+                
+            // Exibir as fingerprints na tabela
+            displayFingerprints(fingerprintData);
 
-        // Verifica se a mensagem indica que há registros anteriores
-        if (message.includes('Tenho outros registros')) {
-            // Criar o botão dinamicamente
-            const button = document.createElement('button');
-            button.textContent = 'Ver últimas 5 fingerprints';
-            button.onclick = () => {
-               window.location.href = `/view-records?identifierValue=${identifierValue}&selectedIdentifier=${selectedIdentifier}`;
-            };
-            messageElement.appendChild(button);
+            // Enviar uma requisição ao servidor para verificar o identificador
+            fetch('/check-identifier', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ selectedIdentifier, identifierValue })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Atualizar a mensagem e o botão
+                displayMessageAndButton(data.message, identifierValue, selectedIdentifier);
+            })
+            .catch(error => console.error('Erro ao verificar o identificador:', error));
+
+            return;
         }
+        
+        const thumbmarkFingerprint = await getThumbmarkFingerprint();
+        const tcpFingerprint = await getTCPFingerprint();
+        const canvasFingerprint = getCanvasFingerprint();
+        const audioFingerprint = getAudioFingerprint();
+        const webGLFingerprint = getWebGLFingerprint();
+        const batteryFingerprint = await getBatteryFingerprint();
+
+        fingerprintData = {
+            // Navegador e Sistema
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            screenResolution: `${window.screen.width}x${window.screen.height}`,
+            colorDepth: `${window.screen.colorDepth}-bit`,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            cookiesEnabled: navigator.cookieEnabled,
+            cpuCores: navigator.hardwareConcurrency || null,
+            onlineStatus: navigator.onLine ? 'Online' : 'Offline',
+            localStorage: typeof localStorage !== 'undefined' ? 'Supported' : 'Not supported',
+            sessionStorage: typeof sessionStorage !== 'undefined' ? 'Supported' : 'Not supported',
+            windowSize: `${window.innerWidth}x${window.innerHeight}`,
+            touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
+            pluginsInstalled: navigator.plugins.length > 0 ? Array.from(navigator.plugins).map(plugin => plugin.name).join(', ') : 'No plugins',
+
+            // TCP Fingerprint
+            tcpFingerprint: tcpFingerprint.os,
+            tcpFingerprintMismatch: tcpFingerprint.os_mismatch,
+            clientIP: tcpFingerprint.client_ip,
+
+            // ThumbmarkJS Fingerprint
+            thumbmarkFingerprint: thumbmarkFingerprint,
+
+            // Dados adicionais do ClientJS
+            browser: client.getBrowser() || 'Unknown',
+            browserVersion: client.getBrowserVersion() || 'Unknown',
+            os: client.getOS() || 'Unknown',
+            device: client.getDevice() || 'Unknown',
+            cpu: client.getCPU() || 'Unknown',
+            deviceType: client.getDeviceType() || 'Desktop',
+            deviceVendor: client.getDeviceVendor() || 'Unknown Vendor',
+            isMobile: client.isMobile() || false,
+            fingerprint: client.getFingerprint() || 'Unknown',
+        
+            // Fingerprints adicionais
+            canvasFingerprint: canvasFingerprint,
+            audioFingerprint: audioFingerprint,
+            webGLFingerprint: webGLFingerprint ? `Vendor: ${webGLFingerprint.vendor}, Renderer: ${webGLFingerprint.renderer}` : 'Not supported',
+            batteryFingerprint: JSON.stringify(batteryFingerprint)
+    };
+        
+     
+        // Salvar os dados no sessionStorage para acesso posterior
+        sessionStorage.setItem('fingerprintData', JSON.stringify(fingerprintData));
+
+        // Obter o identificador selecionado e o valor correspondente
+        selectedIdentifier = identifierSelect.value;
+        identifierValue = fingerprintData[selectedIdentifier];
+        fingerprintData.selectedIdentifier = selectedIdentifier;
+        
+        // Armazenar o identificador selecionado no sessionStorage
+        sessionStorage.setItem('selectedIdentifier', selectedIdentifier);
+        
+        // Enviar as fingerprints para o backend
+        fetch('/submit-fingerprint', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(fingerprintData)
+        })
+        .then(response => response.json())
+        .then(data => {
+             // Exibir os dados na tabela
+            displayFingerprints(fingerprintData);
+
+            // Exibir a mensagem e o botão
+            displayMessageAndButton(data.message, identifierValue, selectedIdentifier);
+
+            // Marcar que as fingerprints foram enviadas nesta sessão
+            sessionStorage.setItem('fingerprintsSent', 'true');
+            fingerprintsSent = true; // Atualizar a variável local
+        })
+        .catch(error => console.error('Erro ao enviar/verificar fingerprint:', error));
     }
-    
-    // Iniciar a coleta de fingerprints
+    // Chamar collectFingerprints no carregamento da página
     collectFingerprints();
+    
+     // Adicionar um listener para o evento de mudança do identificador
+    identifierSelect.addEventListener('change', () => {
+            selectedIdentifier = identifierSelect.value;
+            identifierValue = fingerprintData[selectedIdentifier];
+            
+            // Armazenar o identificador selecionado no sessionStorage
+            sessionStorage.setItem('selectedIdentifier', selectedIdentifier);
+            
+            if (identifierValue === undefined) {
+                alert('O identificador selecionado não está disponível nos dados coletados.');
+                return;
+            }
+            
+            // Enviar uma requisição ao servidor para verificar o identificador
+            fetch('/check-identifier', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ selectedIdentifier, identifierValue })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Atualizar a mensagem e o botão
+                displayMessageAndButton(data.message, identifierValue, selectedIdentifier);
+            })
+            .catch(error => console.error('Erro ao verificar o identificador:', error));
+        });
+
 });
 
+window.addEventListener('pageshow', (event) => {
+        if (event.persisted || performance.getEntriesByType('navigation')[0].type === 'back_forward') {
+            // A página foi carregada do cache
+            fingerprintsSent = sessionStorage.getItem('fingerprintsSent') === 'true';
+            selectedIdentifier = document.getElementById('identifier').value;
 
+            collectFingerprints();
+        }
+});

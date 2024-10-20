@@ -81,13 +81,18 @@ app.get('/', (req, res) => {
     res.render('index', { title: 'Fingerprint Data', message: '' });
 });
 
+function isValidIdentifier(identifier) {
+    const validIdentifiers = ['thumbmarkFingerprint', 'clientIP', 'fingerprint', 'canvasFingerprint'];
+    return validIdentifiers.includes(identifier);
+}
+
+
 // Rota principal para capturar fingerprints e verificar registros prévios
 app.post('/submit-fingerprint', async (req, res) => {
     let message = "Esse é seu primeiro acesso";
     const selectedIdentifier = req.body.selectedIdentifier;
     const identifierValue = req.body[selectedIdentifier];
-    const validIdentifiers = ['thumbmarkFingerprint', 'clientIP', 'fingerprint', 'canvasFingerprint'];
-    if (!validIdentifiers.includes(selectedIdentifier)) {
+    if (!isValidIdentifier(selectedIdentifier)) {
         return res.status(400).json({ message: 'Identificador inválido' });
     }
 
@@ -103,11 +108,38 @@ app.post('/submit-fingerprint', async (req, res) => {
             message = `Tenho outros registros na minha base de dados para o identificador "${selectedIdentifier}" com valor "${identifierValue}"`;
         }
     } catch (error) {
-        console.error('Erro ao buscar fingerprint no banco de dados:', error);
+        console.error('Erro ao salvar a fingerprint no banco de dados:', error);
+        return res.status(500).json({ message: 'Erro ao salvar a fingerprint' });
     }
 
     // Retornar a mensagem com ou sem registros anteriores
     res.json({ message, identifierValue, selectedIdentifier });
+});
+
+app.post('/check-identifier', async (req, res) => {
+    const selectedIdentifier = req.body.selectedIdentifier;
+    const identifierValue = req.body.identifierValue;
+    
+    if (!isValidIdentifier(selectedIdentifier)) {
+        return res.status(400).json({ message: 'Identificador inválido' });
+    }
+
+    let message = "Esse é seu primeiro acesso";
+
+    try {
+        // Verificar se há registros anteriores com o mesmo identificador
+        const count = await Fingerprint.countDocuments({ [selectedIdentifier]: identifierValue });
+
+        if (count > 1) {  // Se for maior que 0, já há outros registros
+            message = `Tenho outros registros na minha base de dados para o identificador "${selectedIdentifier}" com valor "${identifierValue}"`;
+        }
+    } catch (error) {
+        console.error('Erro ao buscar fingerprint no banco de dados:', error);
+        return res.status(500).json({ message: 'Erro ao verificar o identificador' });
+    }
+
+    // Retornar a mensagem com ou sem registros anteriores
+    res.json({ message });
 });
 
 
@@ -115,7 +147,14 @@ app.post('/submit-fingerprint', async (req, res) => {
 app.get('/view-records', async (req, res) => {
     const selectedIdentifier = req.query.selectedIdentifier;
     const identifierValue = req.query.identifierValue;
-
+    if (!isValidIdentifier(selectedIdentifier)) {
+        return res.status(400).json({ message: 'Identificador inválido' });
+    }
+    
+    if (!identifierValue) {
+        return res.status(400).send('Valor do identificador não fornecido');
+    }
+    
     try {
         // Buscar as últimas 5 fingerprints com o mesmo identificador
         const fingerprints = await Fingerprint.find({ [selectedIdentifier]: identifierValue })
