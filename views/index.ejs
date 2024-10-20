@@ -7,10 +7,17 @@
     <link rel="stylesheet" href="/css/index.css">
 </head>
 <body>
-
     <div class="container">
         <h1>D-Anon</h1>
-
+        <div class="identifier-selection">
+            <label for="identifier">Escolha o identificador:</label>
+            <select id="identifier">
+                <option value="thumbmarkFingerprint" selected>Thumbmark Fingerprint</option>
+                <option value="clientIP">Client IP (TCP Fingerprint)</option>
+                <option value="fingerprint">ClientJS Fingerprint</option>
+                <option value="canvasFingerprint">Canvas Fingerprint</option>
+            </select>
+        </div>
         <div id="message"></div>
 
         <table>

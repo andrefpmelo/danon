@@ -149,3 +149,18 @@ button {
 .content {
     /*display: none;*/
 }
+
+.identifier-selection {
+    margin-bottom: 20px;
+}
+
+.identifier-selection label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.identifier-selection select {
+    padding: 5px 10px;
+    font-size: 16px;
+}
+

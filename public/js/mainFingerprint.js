@@ -59,7 +59,17 @@ document.addEventListener('DOMContentLoaded', () => {
             webGLFingerprint: webGLFingerprint ? `Vendor: ${webGLFingerprint.vendor}, Renderer: ${webGLFingerprint.renderer}` : 'Not supported',
             batteryFingerprint: JSON.stringify(batteryFingerprint)
     };
+        
+        // Obter o identificador selecionado
+        const identifierSelect = document.getElementById('identifier');
+        const selectedIdentifier = identifierSelect.value;
+        identifierSelect.addEventListener('change', () => {
+            collectFingerprints();
+        });
 
+        // Adicionar ao objeto fingerprintData
+        fingerprintData.selectedIdentifier = selectedIdentifier;
+        
         // Enviar as fingerprints para o backend
         fetch('/submit-fingerprint', {
             method: 'POST',
@@ -79,8 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Exibir os dados na tabela
             displayFingerprints(fingerprintData);
             
-            // Exibir o botão se existirem outros registros
-            displayMessageAndButton(data.message, data.thumbmarkFingerprint);
+            // Exibir a mensagem e o botão
+            displayMessageAndButton(data.message, fingerprintData[selectedIdentifier], selectedIdentifier);
         })
         .catch(error => console.error('Erro ao enviar/verificar fingerprint:', error));
     }
@@ -179,22 +189,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Exibir a mensagem e o botão
-    function displayMessageAndButton(message, thumbmarkFingerprint) {
+    function displayMessageAndButton(message, identifierValue, selectedIdentifier) {
         const messageElement = document.getElementById('message');
         messageElement.textContent = message;
 
         // Verifica se a mensagem indica que há registros anteriores
         if (message.includes('Tenho outros registros')) {
-            // Debug
-            //console.log('Criando botão para visualizar registros anteriores')
             // Criar o botão dinamicamente
             const button = document.createElement('button');
             button.textContent = 'Ver últimas 5 fingerprints';
             button.onclick = () => {
-               window.location.href = `/view-records?thumbmarkFingerprint=${thumbmarkFingerprint}`;
+               window.location.href = `/view-records?identifierValue=${identifierValue}&selectedIdentifier=${selectedIdentifier}`;
             };
             messageElement.appendChild(button);
-            
         }
     }
     

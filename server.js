@@ -62,6 +62,11 @@ const fingerprintSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
 });
 
+fingerprintSchema.index({ thumbmarkFingerprint: 1 });
+fingerprintSchema.index({ clientIP: 1 });
+fingerprintSchema.index({ fingerprint: 1 });
+fingerprintSchema.index({ canvasFingerprint: 1 });
+
 // Criar o modelo Fingerprint
 const Fingerprint = mongoose.model('Fingerprint', fingerprintSchema);
 
@@ -79,46 +84,56 @@ app.get('/', (req, res) => {
 // Rota principal para capturar fingerprints e verificar registros prévios
 app.post('/submit-fingerprint', async (req, res) => {
     let message = "Esse é seu primeiro acesso";
-    const thumbmarkFingerprint = req.body.thumbmarkFingerprint;
+    const selectedIdentifier = req.body.selectedIdentifier;
+    const identifierValue = req.body[selectedIdentifier];
+    const validIdentifiers = ['thumbmarkFingerprint', 'clientIP', 'fingerprint', 'canvasFingerprint'];
+    if (!validIdentifiers.includes(selectedIdentifier)) {
+        return res.status(400).json({ message: 'Identificador inválido' });
+    }
 
     try {
-        // Primeiro, salvar as fingerprints no banco de dados
+        // Salvar as fingerprints no banco de dados
         const newFingerprint = new Fingerprint(req.body);
         await newFingerprint.save();
 
-        // Depois de salvar, verificar se há registros anteriores com a mesma fingerprint
-        const count = await Fingerprint.countDocuments({ thumbmarkFingerprint: thumbmarkFingerprint });
-        // Debug
-        //console.log(`Número de registros com a thumbmarkFingerprint ${thumbmarkFingerprint}:`, count);
+        // Verificar se há registros anteriores com o mesmo identificador
+        const count = await Fingerprint.countDocuments({ [selectedIdentifier]: identifierValue });
         
-        if (count > 1) {  // Se for maior que 1, significa que já há outros registros
-            message = `Tenho outros registros na minha base de dados para a fingerprint ${thumbmarkFingerprint}`;
+        if (count > 1) {  // Se for maior que 1, já há outros registros
+            message = `Tenho outros registros na minha base de dados para o identificador "${selectedIdentifier}" com valor "${identifierValue}"`;
         }
     } catch (error) {
         console.error('Erro ao buscar fingerprint no banco de dados:', error);
     }
 
     // Retornar a mensagem com ou sem registros anteriores
-    res.json({ message, thumbmarkFingerprint });
+    res.json({ message, identifierValue, selectedIdentifier });
 });
 
-// Nova rota para exibir as últimas 5 fingerprints do usuário
+
+// Rota para exibir as últimas 5 fingerprints do usuário
 app.get('/view-records', async (req, res) => {
-    const thumbmarkFingerprint = req.query.thumbmarkFingerprint;
+    const selectedIdentifier = req.query.selectedIdentifier;
+    const identifierValue = req.query.identifierValue;
 
     try {
-        // Buscar as últimas 5 fingerprints com o mesmo thumbmarkFingerprint, ordenadas por data de criação
-        const fingerprints = await Fingerprint.find({ thumbmarkFingerprint: thumbmarkFingerprint })
+        // Buscar as últimas 5 fingerprints com o mesmo identificador
+        const fingerprints = await Fingerprint.find({ [selectedIdentifier]: identifierValue })
                                               .sort({ timestamp: -1 })
                                               .limit(5);
 
-        // Renderizar uma nova página com os registros encontrados
-        res.render('view-records', { fingerprints: fingerprints, thumbmarkFingerprint: thumbmarkFingerprint });
+        // Renderizar a página com os registros encontrados
+        res.render('view-records', {
+            fingerprints: fingerprints,
+            selectedIdentifier: selectedIdentifier,
+            identifierValue: identifierValue
+        });
     } catch (error) {
         console.error('Erro ao buscar as últimas 5 fingerprints:', error);
         res.status(500).send('Erro ao buscar registros');
     }
 });
+
 
 // Iniciar o servidor na porta 3000
 const PORT = process.env.PORT || 3000;
