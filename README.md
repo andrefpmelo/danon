@@ -24,16 +24,14 @@ Por padrão, o sistema usa o thumbmarkFingerprint, mas o usuário pode seleciona
 │   │   ├── index.css
 │   │   └── view-records.css
 │   ├── js
-│   │   ├── audioFingerprint.js
-│   │   ├── batteryFingerprint.js
-│   │   ├── canvasFingerprint.js
-│   │   ├── mainFingerprint.js
-│   │   ├── tcpFingerprint.js
-│   │   ├── thumbmarkFingerprint.js
-│   │   ├── webGLFingerprint.js
-│   │   └── client.min.js (ClientJS)
-│   └── images
-│       └── ... (imagens utilizadas no projeto)
+│       ├── audioFingerprint.js
+│       ├── batteryFingerprint.js
+│       ├── canvasFingerprint.js
+│       ├── mainFingerprint.js
+│       ├── tcpFingerprint.js
+│       ├── thumbmarkFingerprint.js
+│       ├── webGLFingerprint.js
+│   
 ├── server.js
 └── views
     ├── index.ejs
