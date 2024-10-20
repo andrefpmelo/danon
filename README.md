@@ -5,26 +5,40 @@
 ## Funcionalidades
 
 - **Captura de Fingerprints**: O sistema captura fingerprints do navegador, como Canvas, TCP, Audio, WebGL, e ThumbmarkJS.
-- **Consulta no Banco de Dados**: Quando o usuário acessa o sistema, ele verifica se já existe um registro no banco de dados MongoDB para a mesma fingerprint do ThumbmarkJS e exibe uma mensagem correspondente.
-- **Exibição de Dados**: Todos os dados coletados são exibidos em uma tabela organizada por seções: Navegador e Sistema, TCP Fingerprints, ClientJS Fingerprints, ThumbmarkJS Fingerprints e Fingerprints Adicionais.
+- **Identificador Personalizável**: Ao acessar o sistema, o usuário pode escolher qual identificador será usado para identificá-lo entre as seguintes opções:
+-- thumbmarkFingerprint
+-- clientIP (TCP Fingerprint)
+-- fingerprint (ClientJS Fingerprint)
+-- canvasFingerprint
+Por padrão, o sistema usa o thumbmarkFingerprint, mas o usuário pode selecionar outro identificador na interface.
+- **Consulta no Banco de Dados**: Quando o usuário acessa o sistema, o servidor verifica se já existe um registro no banco de dados MongoDB para o identificador selecionado e exibe uma mensagem correspondente.
+- **Exibição de Dados**: Todos os dados coletados são exibidos em uma tabela organizada por seções que podem ser expandidas ou comprimidas: Navegador e Sistema, TCP Fingerprints, ClientJS Fingerprints, ThumbmarkJS Fingerprints e Fingerprints Adicionais.
+- **Visualização de Registros Anteriores**: Se houver registros anteriores para o identificador selecionado, o sistema permite que o usuário visualize as últimas 5 fingerprints associadas a esse identificador. Na página de visualização, o identificador escolhido é destacado para facilitar a identificação.
 
 ## Estrutura do Projeto
 
 ```plaintext
 .
 ├── public
-│   └── js
-│       ├── audioFingerprint.js
-│       ├── batteryFingerprint.js
-│       ├── canvasFingerprint.js
-│       ├── mainFingerprint.js
-│       ├── tcpFingerprint.js
-│       ├── thumbmarkFingerprint.js
-│       ├── webGLFingerprint.js
+│   ├── css
+│   │   ├── index.css
+│   │   └── view-records.css
+│   ├── js
+│   │   ├── audioFingerprint.js
+│   │   ├── batteryFingerprint.js
+│   │   ├── canvasFingerprint.js
+│   │   ├── mainFingerprint.js
+│   │   ├── tcpFingerprint.js
+│   │   ├── thumbmarkFingerprint.js
+│   │   ├── webGLFingerprint.js
+│   │   └── client.min.js (ClientJS)
+│   └── images
+│       └── ... (imagens utilizadas no projeto)
 ├── server.js
 └── views
     ├── index.ejs
-    └── response.ejs
+    └── view-records.ejs
+
 
 ```
 ## Arquivos de Fingerprinting
@@ -44,6 +58,7 @@ Certifique-se de que você tem os seguintes softwares instalados em seu sistema:
 - Node.js (v14 ou superior)
 - MongoDB (em execução localmente ou via Docker)
 - Git (para clonar o repositório)
+- Docker (opcional, para executar o MongoDB via Docker)
 
 ## Como Instalar
 Siga os passos abaixo para baixar e executar o projeto Danon em seu computador:
@@ -85,31 +100,52 @@ http://localhost:3000
 ### server.js
 Este arquivo contém toda a lógica do servidor. Ele:
 
-- Conecta ao MongoDB.
-- Recebe e salva os fingerprints enviados pelo cliente.
-- Verifica se uma thumbmarkFingerprint já existe no banco de dados.
+- Conecta ao MongoDB e define o esquema de dados.
+- Recebe e salva as fingerprints enviadas pelo cliente.
+- Verifica se já existem registros anteriores para o identificador selecionado.
 - Renderiza as páginas usando EJS.
+- Permite que o usuário visualize os registros anteriores associados ao identificador escolhido
 
 ### index.ejs
-Arquivo responsável pela exibição dos dados no navegador. Ele exibe os fingerprints coletados em uma tabela, organizados por seções.
+Arquivo responsável pela interface principal da aplicação. Ele:
 
-### fingerprint.js
-Arquivo JavaScript que coleta várias fingerprints do navegador do usuário, como canvas, WebGL, áudio, bateria, TCP, e ThumbmarkJS. Ele também envia esses dados ao servidor.
+- Exibe um campo de seleção onde o usuário pode escolher o identificador a ser utilizado.
+- Mostra as fingerprints coletadas em uma tabela organizada por seções que podem ser expandidas ou comprimidas.
+- Exibe mensagens informando se existem registros anteriores para o identificador selecionado.
+- Permite ao usuário visualizar os últimos registros caso existam.
 
+### view-records.ejs
+Esta página exibe os últimos 5 registros associados ao identificador selecionado. Características:
+
+- Destaca o identificador escolhido nos registros exibidos.
+- Apresenta os dados de forma organizada, facilitando a comparação entre os registros.
+- Inclui um botão para voltar à página inicial.
+
+### Arquivos de Fingerprint
+Os arquivos JavaScript em public/js/ são responsáveis por coletar diversas fingerprints do navegador do usuário:
+
+- audioFingerprint.js
+- batteryFingerprint.js
+- canvasFingerprint.js
+- webGLFingerprint.js
+- tcpFingerprint.js
+- thumbmarkFingerprint.js
+- mainFingerprint.js
+O arquivo mainFingerprint.js é o ponto central que coordena a coleta das fingerprints e o envio dos dados ao servidor.
+
+### CSS
+Os arquivos CSS em public/css/ definem o estilo das páginas:
+
+- index.css: Estilos para a página principal (index.ejs).
+- view-records.css: Estilos para a página de visualização de registros (view-records.ejs).
 
 ## Tecnologias Utilizadas
 - Node.js: Back-end do projeto.
-- MongoDB: Base de dados utilizada para armazenar as fingerprints.
 - Express.js: Framework web utilizado no servidor.
-- ThumbmarkJS: Biblioteca utilizada para captura de fingerprints.
-- ClientJS: Captura de dados adicionais do navegador.
+- MongoDB: Base de dados utilizada para armazenar as fingerprints.
 - EJS: Template engine para a renderização das páginas HTML.
-
-## Prints
-![image](https://github.com/user-attachments/assets/32e6f3d5-c535-4df2-b18b-859ecb916358)
-![image](https://github.com/user-attachments/assets/9010d8d3-7e3a-4379-99fa-c47f963a99a6)
-![image](https://github.com/user-attachments/assets/a416bb3b-794a-44ca-a9bb-772885a938bf)
-
-__________
-
-![image](https://github.com/user-attachments/assets/9270abf2-7c00-47d0-a31e-8c8326e7dc4c)
+- ThumbmarkJS: Biblioteca utilizada para captura de fingerprints.
+- ClientJS: Biblioteca para captura de dados adicionais do navegador.
+- Docker: Para facilitar a execução do MongoDB em ambientes de desenvolvimento.
+- JavaScript (ES6): Utilizado no front-end e back-end.
+- CSS: Estilização das páginas web.
