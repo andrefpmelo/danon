@@ -1,34 +1,34 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Últimos 5 Registros de Fingerprints</title>
-    <link rel="stylesheet" href="/css/view-records.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Últimos 5 Registros para a Fingerprint <%= thumbmarkFingerprint %></h1>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Últimos 5 Registros de Fingerprints</title>
+        <link rel="stylesheet" href="/css/view-records.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>Últimos 5 Registros para a Fingerprint <%= thumbmarkFingerprint %></h1>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Detalhes</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% fingerprints.forEach(fingerprint => { %>
+            <table>
+                <thead>
                     <tr>
-                        <td><%= new Date(fingerprint.timestamp).toLocaleString() %></td>
-                        <td>
-                            <pre class="json-data"><%= JSON.stringify(fingerprint, null, 2) %></pre>
-                        </td>
+                        <th>Data</th>
+                        <th>Detalhes</th>
                     </tr>
-                <% }) %>
-            </tbody>
-        </table>
-    </div>
-</body>
+                </thead>
+                <tbody>
+                    <% fingerprints.forEach(fingerprint => { %>
+                        <tr>
+                            <td><%= new Date(fingerprint.timestamp).toLocaleString() %></td>
+                            <td>
+                                <pre class="json-data"><%= JSON.stringify(fingerprint, null, 2) %></pre>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </body>
 
 </html>

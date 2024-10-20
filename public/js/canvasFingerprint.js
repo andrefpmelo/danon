@@ -2,6 +2,7 @@ export function getCanvasFingerprint() {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
+    // Configurações e desenho no canvas
     ctx.textBaseline = 'top';
     ctx.font = '14px Arial';
     ctx.fillStyle = 'red';
@@ -12,13 +13,16 @@ export function getCanvasFingerprint() {
     ctx.arc(12, 37, 12, 0, Math.PI * 2, true);
     ctx.stroke();
 
-    const canvasData = canvas.toDataURL();
+    // Obter os dados dos pixels
+    const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    // Calcular o hash a partir dos dados dos pixels
     let hash = 0;
-    for (let i = 0; i < canvasData.length; i++) {
-        const char = canvasData.charCodeAt(i);
-        hash = (hash << 5) - hash + char;
-        hash = hash & hash;
+    for (let i = 0; i < pixelData.length; i++) {
+        hash = ((hash << 5) - hash) + pixelData[i];
+        hash = hash & 0xFFFFFFFF; // Limita o hash a 32 bits
     }
+
     return hash.toString();
 }
 

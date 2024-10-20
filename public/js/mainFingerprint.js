@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Fingerprints adicionais
             canvasFingerprint: canvasFingerprint,
             audioFingerprint: audioFingerprint,
-            webGLFingerprint: webGLFingerprint,
+            webGLFingerprint: webGLFingerprint ? `Vendor: ${webGLFingerprint.vendor}, Renderer: ${webGLFingerprint.renderer}` : 'Not supported',
             batteryFingerprint: JSON.stringify(batteryFingerprint)
     };
 
