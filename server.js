@@ -19,6 +19,9 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Definir o esquema de fingerprint
 const fingerprintSchema = new mongoose.Schema({
+    // Fingerprint gerado pelo ThumbmarkJS
+    thumbmarkFingerprint: String,
+    // Fingerprints de navegador e sistema
     userAgent: String,
     language: String,
     platform: String,
@@ -39,9 +42,6 @@ const fingerprintSchema = new mongoose.Schema({
     tcpFingerprint: String,
     tcpFingerprintMismatch: Boolean,
     clientIP: String,
-
-    // Fingerprint gerado pelo ThumbmarkJS
-    thumbmarkFingerprint: String,
 
     // Dados adicionais coletados pelo ClientJS
     browser: String,
@@ -88,6 +88,9 @@ app.post('/submit-fingerprint', async (req, res) => {
 
         // Depois de salvar, verificar se há registros anteriores com a mesma fingerprint
         const count = await Fingerprint.countDocuments({ thumbmarkFingerprint: thumbmarkFingerprint });
+        // Debug
+        //console.log(`Número de registros com a thumbmarkFingerprint ${thumbmarkFingerprint}:`, count);
+        
         if (count > 1) {  // Se for maior que 1, significa que já há outros registros
             message = `Tenho outros registros na minha base de dados para a fingerprint ${thumbmarkFingerprint}`;
         }
@@ -95,8 +98,26 @@ app.post('/submit-fingerprint', async (req, res) => {
         console.error('Erro ao buscar fingerprint no banco de dados:', error);
     }
 
-    // Retornar a mensagem como JSON
-    res.json({ message });
+    // Retornar a mensagem com ou sem registros anteriores
+    res.json({ message, thumbmarkFingerprint });
+});
+
+// Nova rota para exibir as últimas 5 fingerprints do usuário
+app.get('/view-records', async (req, res) => {
+    const thumbmarkFingerprint = req.query.thumbmarkFingerprint;
+
+    try {
+        // Buscar as últimas 5 fingerprints com o mesmo thumbmarkFingerprint, ordenadas por data de criação
+        const fingerprints = await Fingerprint.find({ thumbmarkFingerprint: thumbmarkFingerprint })
+                                              .sort({ timestamp: -1 })
+                                              .limit(5);
+
+        // Renderizar uma nova página com os registros encontrados
+        res.render('view-records', { fingerprints: fingerprints, thumbmarkFingerprint: thumbmarkFingerprint });
+    } catch (error) {
+        console.error('Erro ao buscar as últimas 5 fingerprints:', error);
+        res.status(500).send('Erro ao buscar registros');
+    }
 });
 
 // Iniciar o servidor na porta 3000

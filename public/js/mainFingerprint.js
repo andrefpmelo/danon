@@ -70,12 +70,17 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => response.json())
         .then(data => {
+             // Debug
+            //console.log('Resposta do backend:', data);
             // Exibir a mensagem retornada pelo servidor
             const messageElement = document.getElementById('message');
             messageElement.textContent = data.message;
 
             // Exibir os dados na tabela
             displayFingerprints(fingerprintData);
+            
+            // Exibir o botão se existirem outros registros
+            displayMessageAndButton(data.message, data.thumbmarkFingerprint);
         })
         .catch(error => console.error('Erro ao enviar/verificar fingerprint:', error));
     }
@@ -84,26 +89,34 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayFingerprints(fingerprintData) {
         function insertIntoSection(sectionId, attribute, value) {
             const section = document.getElementById(sectionId);
-            const row = document.createElement('tr');
-            const attributeCell = document.createElement('td');
-            const valueCell = document.createElement('td');
 
-            attributeCell.textContent = attribute;
-            valueCell.textContent = value;
+            if (section) {
+                const row = document.createElement('tr');
+                const attributeCell = document.createElement('td');
+                const valueCell = document.createElement('td');
 
-            row.appendChild(attributeCell);
-            row.appendChild(valueCell);
-            section.appendChild(row);
+                attributeCell.textContent = attribute;
+                valueCell.textContent = value;
+
+                row.appendChild(attributeCell);
+                row.appendChild(valueCell);
+                section.appendChild(row);
+            }
         }
 
         // Limpar seções antes de exibir novos dados
-        document.getElementById('systemData').innerHTML = '';
-        document.getElementById('tcpData').innerHTML = '';
-        document.getElementById('clientData').innerHTML = '';
-        document.getElementById('thumbmarkData').innerHTML = '';
-        document.getElementById('additionalData').innerHTML = '';
+        const sectionIds = ['thumbmarkData', 'systemData', 'tcpData', 'clientData', 'additionalData'];
+        sectionIds.forEach(id => {
+            const section = document.getElementById(id);
+            // Mantém a linha de título e remove o restante
+            section.innerHTML = section.querySelector('.section-title').outerHTML;
+        });
 
         // Exibir os dados
+        // Seção ThumbmarkJS Fingerprints
+        insertIntoSection('thumbmarkData', 'thumbmarkFingerprint', fingerprintData.thumbmarkFingerprint);
+        
+        // Navegador e Sistema
         insertIntoSection('systemData', 'userAgent', fingerprintData.userAgent);
         insertIntoSection('systemData', 'language', fingerprintData.language);
         insertIntoSection('systemData', 'platform', fingerprintData.platform);
@@ -135,17 +148,56 @@ document.addEventListener('DOMContentLoaded', () => {
         insertIntoSection('clientData', 'isMobile', fingerprintData.isMobile);
         insertIntoSection('clientData', 'ClientJS fingerprint', fingerprintData.fingerprint);
 
-        // Seção ThumbmarkJS Fingerprints
-        insertIntoSection('thumbmarkData', 'thumbmarkFingerprint', fingerprintData.thumbmarkFingerprint);
-
         // Seção Fingerprints adicionais
         insertIntoSection('additionalData', 'canvasFingerprint', fingerprintData.canvasFingerprint);
         insertIntoSection('additionalData', 'audioFingerprint', fingerprintData.audioFingerprint);
         insertIntoSection('additionalData', 'webGLFingerprint', fingerprintData.webGLFingerprint);
         insertIntoSection('additionalData', 'batteryFingerprint', fingerprintData.batteryFingerprint);
 
+        // Após inserir os dados, configurar os botões de toggle
+        setupToggleButtons();
     }
 
+    function setupToggleButtons() {
+        const sections = document.querySelectorAll('tbody.section');
+
+        sections.forEach(section => {
+            const titleRow = section.querySelector('.section-title');
+            const toggleIcon = titleRow.querySelector('.toggle-icon');
+
+            // Inicialmente, ocultar todas as linhas após o título
+            const contentRows = section.querySelectorAll('tr:not(.section-title)');
+            contentRows.forEach(row => row.style.display = 'none');
+            toggleIcon.textContent = '+';
+
+            titleRow.addEventListener('click', () => {
+                const isHidden = contentRows[0].style.display === 'none';
+                contentRows.forEach(row => row.style.display = isHidden ? 'table-row' : 'none');
+                toggleIcon.textContent = isHidden ? '-' : '+';
+            });
+        });
+    }
+    
+    // Exibir a mensagem e o botão
+    function displayMessageAndButton(message, thumbmarkFingerprint) {
+        const messageElement = document.getElementById('message');
+        messageElement.textContent = message;
+
+        // Verifica se a mensagem indica que há registros anteriores
+        if (message.includes('Tenho outros registros')) {
+            // Debug
+            //console.log('Criando botão para visualizar registros anteriores')
+            // Criar o botão dinamicamente
+            const button = document.createElement('button');
+            button.textContent = 'Ver últimas 5 fingerprints';
+            button.onclick = () => {
+               window.location.href = `/view-records?thumbmarkFingerprint=${thumbmarkFingerprint}`;
+            };
+            messageElement.appendChild(button);
+            
+        }
+    }
+    
     // Iniciar a coleta de fingerprints
     collectFingerprints();
 });
