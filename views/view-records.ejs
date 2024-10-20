@@ -9,6 +9,10 @@
     <body>
         <div class="container">
             <h1>Últimos 5 Registros para o Identificador "<%= selectedIdentifier %>" com Valor "<%= identifierValue %>"</h1>
+            
+            <!-- Botão de Voltar -->
+            <button onclick="window.location.href='/'" class="back-button">Voltar</button>
+            
             <table>
                 <thead>
                     <tr>
@@ -21,7 +25,20 @@
                         <tr>
                             <td><%= new Date(fingerprint.timestamp).toLocaleString() %></td>
                             <td>
-                                <pre class="json-data"><%= JSON.stringify(fingerprint, null, 2) %></pre>
+                                <table class="data-table">
+                                    <tbody>
+                                        <% Object.keys(fingerprint._doc).forEach((key) => { 
+                                            if (key !== '_id' && key !== '__v') { 
+                                                const isIdentifier = key === selectedIdentifier;
+                                        %>
+                                        <tr class="<%= isIdentifier ? 'highlighted-row' : '' %>">
+                                            <td class="key"><%= key %></td>
+                                            <td class="value"><%= fingerprint[key] %></td>
+                                        </tr>
+                                        <%    } 
+                                        }); %>
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
                     <% }) %>
@@ -29,5 +46,5 @@
             </table>
         </div>
     </body>
-
 </html>
+

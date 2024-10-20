@@ -175,18 +175,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const titleRow = section.querySelector('.section-title');
             const toggleIcon = titleRow.querySelector('.toggle-icon');
 
-            // Inicialmente, ocultar todas as linhas após o título
+            // Não ocultar as linhas após o título
             const contentRows = section.querySelectorAll('tr:not(.section-title)');
-            contentRows.forEach(row => row.style.display = 'none');
-            toggleIcon.textContent = '+';
+            // Removido o código que oculta as linhas
+            toggleIcon.textContent = '-'; // Seções estão expandidas por padrão
 
             titleRow.addEventListener('click', () => {
-                const isHidden = contentRows[0].style.display === 'none';
-                contentRows.forEach(row => row.style.display = isHidden ? 'table-row' : 'none');
-                toggleIcon.textContent = isHidden ? '-' : '+';
+                if (contentRows.length > 0) {
+                    const isHidden = contentRows[0].style.display === 'none';
+                    contentRows.forEach(row => row.style.display = isHidden ? 'table-row' : 'none');
+                    toggleIcon.textContent = isHidden ? '-' : '+';
+                }
             });
         });
     }
+
+
     
     // Exibir a mensagem e o botão
     function displayMessageAndButton(message, identifierValue, selectedIdentifier) {
