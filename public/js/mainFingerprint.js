@@ -4,6 +4,8 @@ import { getWebGLFingerprint } from './webGLFingerprint.js';
 import { getBatteryFingerprint } from './batteryFingerprint.js';
 import { getTCPFingerprint } from './tcpFingerprint.js';
 import { getThumbmarkFingerprint } from './thumbmarkFingerprint.js';
+import { getCSSFingerprint } from './cssFingerprint.js';
+
 
 let fingerprintData = {};
 let selectedIdentifier;
@@ -39,6 +41,10 @@ function displayFingerprints(fingerprintData) {
         });
 
         // Exibir os dados
+        
+        // Seção CSS Fingerprint
+        insertIntoSection('cssData', 'CSS Fingerprint', fingerprintData.cssFingerprint);
+        
         // Seção ThumbmarkJS Fingerprints
         insertIntoSection('thumbmarkData', 'thumbmarkFingerprint', fingerprintData.thumbmarkFingerprint);
         
@@ -184,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const audioFingerprint = getAudioFingerprint();
         const webGLFingerprint = getWebGLFingerprint();
         const batteryFingerprint = await getBatteryFingerprint();
+        const cssFingerprint = await getCSSFingerprint();
 
         fingerprintData = {
             // Navegador e Sistema
@@ -201,6 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
             windowSize: `${window.innerWidth}x${window.innerHeight}`,
             touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
             pluginsInstalled: navigator.plugins.length > 0 ? Array.from(navigator.plugins).map(plugin => plugin.name).join(', ') : 'No plugins',
+            
+            //CSS Fingerprint
+            cssFingerprint: cssFingerprint,
 
             // TCP Fingerprint
             tcpFingerprint: tcpFingerprint.os,

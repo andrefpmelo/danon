@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const app = express();
+const { http, https } = require('follow-redirects');
 
 // Conectar ao MongoDB
 mongoose.connect('mongodb://localhost:27017/fingerprintDB', {
@@ -19,6 +20,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Definir o esquema de fingerprint
 const fingerprintSchema = new mongoose.Schema({
+    //CSS Fingerprint
+    cssFingerprint: String,
     // Fingerprint gerado pelo ThumbmarkJS
     thumbmarkFingerprint: String,
     // Fingerprints de navegador e sistema
@@ -82,7 +85,7 @@ app.get('/', (req, res) => {
 });
 
 function isValidIdentifier(identifier) {
-    const validIdentifiers = ['thumbmarkFingerprint', 'clientIP', 'fingerprint', 'canvasFingerprint'];
+    const validIdentifiers = ['thumbmarkFingerprint', 'clientIP', 'fingerprint', 'canvasFingerprint','cssFingerprint'];
     return validIdentifiers.includes(identifier);
 }
 
@@ -173,6 +176,33 @@ app.get('/view-records', async (req, res) => {
     }
 });
 
+const axios = require('axios');
+
+app.get('/proxy-css-fingerprint', (req, res) => {
+    const requestUrl = 'http://localhost:8000/some/url/308';
+
+    const options = {
+        maxRedirects: 10, // número máximo de redirecionamentos
+    };
+
+    http.get(requestUrl, options, (response) => {
+        const finalUrl = response.responseUrl;
+        console.log('URL final após redirecionamentos:', finalUrl);
+
+        // Extrair a fingerprint do URL final
+        const fingerprint = finalUrl.split('=')[1];
+
+        if (fingerprint) {
+            res.send(fingerprint);
+        } else {
+            console.error('Não foi possível extrair a fingerprint do URL:', finalUrl);
+            res.status(500).send('Erro ao obter CSS Fingerprint');
+        }
+    }).on('error', (error) => {
+        console.error('Erro ao obter CSS Fingerprint:', error);
+        res.status(500).send('Erro ao obter CSS Fingerprint');
+    });
+});
 
 // Iniciar o servidor na porta 3000
 const PORT = process.env.PORT || 3000;

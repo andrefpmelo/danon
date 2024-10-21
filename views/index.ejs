@@ -16,6 +16,7 @@
                 <option value="clientIP">Client IP (TCP Fingerprint)</option>
                 <option value="fingerprint">ClientJS Fingerprint</option>
                 <option value="canvasFingerprint">Canvas Fingerprint</option>
+                <option value="cssFingerprint">CSS Fingerprint</option>
             </select>
         </div>
         <div id="message"></div>
@@ -27,6 +28,14 @@
                     <th>Valor</th>
                 </tr>
             </thead>
+            <!-- Seção CSS Fingerprint -->
+            <tbody id="cssData" class="section">
+                <tr class="section-title">
+                    <td>CSS FINGERPRINT</td>
+                    <td><span class="toggle-icon">+</span></td>
+                </tr>
+                <!-- As linhas com os dados serão inseridas dinamicamente -->
+            </tbody>
             <!-- Seção ThumbmarkJS -->
             <tbody id="thumbmarkData" class="section">
                 <tr class="section-title">
