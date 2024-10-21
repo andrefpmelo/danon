@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const app = express();
 const { http, https } = require('follow-redirects');
+const axios = require('axios');
 
 // Conectar ao MongoDB
 mongoose.connect('mongodb://localhost:27017/fingerprintDB', {
@@ -176,7 +177,6 @@ app.get('/view-records', async (req, res) => {
     }
 });
 
-const axios = require('axios');
 
 app.get('/proxy-css-fingerprint', (req, res) => {
     const requestUrl = 'http://localhost:8000/some/url/308';
